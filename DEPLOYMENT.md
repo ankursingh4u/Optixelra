@@ -66,7 +66,8 @@ configured; if preview deploys are ever enabled, fix their flags too.
 
 `shopify.app.toml` (redirect URLs, scopes, webhook subscriptions incl. the
 mandatory compliance webhook) was pushed on 2026-10-09 with
-`shopify app deploy --allow-updates` against client_id
+`shopify app deploy --allow-updates`, released as version **`optixelra-2`**
+under org **SDLC LIMITED** (`232511680`), app `433497538561`, client_id
 `2ffbbea15200e1219194c9a1b70efb2a`.
 
 Re-run that command after **any** edit to `shopify.app.toml` — editing the file
@@ -84,10 +85,21 @@ overwriting the production URLs with a tunnel address.
    `Starter`, `Growth`, `Pro` (+ `… Annual`), names matching
    `app/plans.server.js` byte-for-byte. **The Free plan is mandatory** or a
    reviewer on a dev store hits an impassable pricing wall.
-2. **Confirm `SHOPIFY_APP_HANDLE`** — set to the assumed `optixelra`. Verify
-   against a real install URL (`/store/<store>/apps/<handle>/…`) and update the
-   Coolify env var if Shopify appended a suffix. A wrong handle 404s every
-   pricing CTA.
+2. **Confirm `SHOPIFY_APP_HANDLE` — treat this as unresolved.** It is set to
+   the assumed `optixelra`, but the release came back named **`optixelra-2`**,
+   which is exactly the shape Shopify produces when it appends a suffix on a
+   name collision (previous builds became `optipix-3` and `imageboost-seo-1`).
+   The suffix may just be a version counter — the sibling's first release was
+   `imageai-max-initial` — so the two cases are indistinguishable from the CLI:
+   `shopify app info` does not print the handle, `shopify app env show` does
+   not include it, and the deploy bundle manifest records `"handle": ""`.
+   Resolve it by reading a real install URL
+   (`/store/<store>/apps/<handle>/…`) or the Dev Dashboard, then update the
+   Coolify env var. A wrong handle 404s every pricing CTA. At runtime the app
+   prefers the handle Shopify itself reports
+   (`currentAppInstallation.app.handle`) and only falls back to this variable —
+   but the fallback is used exactly when the pricing wall renders, so it still
+   has to be right.
 3. **Rotate `SHOPIFY_API_SECRET`** — the secret for client_id
    `2ffbbea15200e1219194c9a1b70efb2a` was shared in plaintext during setup.
    Rotate it in the Dev Dashboard and update the Coolify env var. The
