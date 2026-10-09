@@ -1,0 +1,1273 @@
+/* Optixelra — soft-organic emerald-on-stone design system.
+ *
+ * Every colour, radius and border the app paints is declared in the :root block
+ * below and nowhere else. Keeping the palette half in variables and half in
+ * literals scattered through the rules (or inline in components) means a
+ * rebrand turns into hunting hex codes across files and always missing a few.
+ * Re-theming is editing only this block.
+ *
+ * The visual language is SOFT ORGANIC, and it is deliberately not the
+ * shadow-driven elevation system this app was rebuilt from. Three rules define
+ * it, and each one is the inverse of what the previous build did:
+ *
+ *   1. NO DROP SHADOWS. Depth comes from layered tinted washes — page wash,
+ *      stone card, white panel — and from hairline borders. There is no
+ *      --ox-shadow-* variable to reach for, on purpose. Inset *solid* rules
+ *      (`inset 3px 0 0`) are still allowed: those are markers that indicate
+ *      state, not elevation, and they follow the border radius. If you find
+ *      yourself adding a blurred box-shadow to make something "pop", you are
+ *      reverting to the previous design.
+ *   2. GENEROUS, ROUNDED GEOMETRY. 14px default, 20px for containers, and
+ *      every button, CTA and control is a full pill. The previous build used
+ *      10px rounded rectangles for buttons; nothing here is a rectangle.
+ *   3. NOTHING IS INVERTED. The previous build's signature was a dark ink
+ *      command bar, a reversed table header and a dark floating action bar.
+ *      All three are light here: the command bar is an emerald tinted wash,
+ *      the table header is stone, and the action bar is white with an emerald
+ *      hairline. Brand presence comes from tint and from outlined emerald
+ *      shapes, never from reversing type out of ink.
+ *
+ * Two palette rules that are easy to break:
+ *   1. --ox-ok is LIME (a yellow-green), not emerald. The accent is emerald
+ *      now, so an emerald "success" tag would be indistinguishable from an
+ *      interactive or brand one — exactly the collision the previous build
+ *      avoided by making its informational tone violet instead of blue. Lime
+ *      still reads unambiguously as positive while sitting in a visibly
+ *      different hue family from the brand.
+ *   2. --ox-info is INDIGO and --ox-bad is ROSE. Both are chosen to sit far
+ *      from emerald on the wheel, so a four-tag row (brand / ok / warn / bad)
+ *      is legible at 11px without reading the words.
+ *
+ * The ox-* primitives are consumed by the routes AND by PricingTiers.jsx /
+ * privacy.jsx, so the public pages and the embedded app cannot drift apart.
+ */
+
+:root {
+  /* ── Brand ─────────────────────────────────── */
+  --ox-accent: #059669;           /* emerald-600 — primary action, active state */
+  --ox-accent-hover: #047857;     /* emerald-700                                */
+  --ox-accent-active: #064E3B;    /* emerald-900                                */
+  --ox-deep: #065F46;             /* emerald-800 — accent text on tint          */
+  --ox-accent-tint: #ECFDF5;      /* emerald-50  — command bar, row select      */
+  --ox-accent-tint-2: #D1FAE5;    /* emerald-100 — meter track fill, tag bg     */
+  --ox-accent-border: #A7F3D0;    /* emerald-200                                */
+  --ox-accent-lift: #34D399;      /* emerald-400 — hover on filled surfaces     */
+
+  /* ── Ink & neutrals (stone — warm, not zinc) ─ */
+  --ox-ink: #1C1917;              /* stone-900 — headings, figures */
+  --ox-body: #44403C;             /* stone-700 — body copy         */
+  --ox-muted: #78716C;            /* stone-500 — labels, meta      */
+  --ox-faint: #A8A29E;            /* stone-400 — placeholders      */
+
+  /* ── Surfaces ─────────────────────────────── */
+  /* Three wash levels do the work shadows used to: the page sits on --ox-wash,
+     grouped cards on --ox-wash-2, and the content that matters most is white. */
+  --ox-surface: #FFFFFF;
+  --ox-wash: #FAFAF9;             /* stone-50  — page wash              */
+  --ox-wash-2: #F5F5F4;           /* stone-100 — tiles, tracks, insets  */
+  --ox-hover: #FAFAF9;
+
+  /* ── Borders ──────────────────────────────── */
+  --ox-border: #E7E5E4;           /* stone-200 — the hairline  */
+  --ox-border-strong: #D6D3D1;    /* stone-300 — emphasis      */
+
+  /* ── Geometry ─────────────────────────────── */
+  --ox-r: 14px;                   /* the default radius           */
+  --ox-r-sm: 10px;                /* inputs, thumbs, small chips  */
+  --ox-r-lg: 20px;                /* containers, cards            */
+  --ox-r-pill: 999px;             /* buttons, tags, segmented     */
+  --ox-hair: 1px solid var(--ox-border);
+
+  /* ── Focus ────────────────────────────────── */
+  /* The one ring in the system. It is a focus affordance, not decoration —
+     removing it to honour rule 1 above would break keyboard navigation. */
+  --ox-ring: 0 0 0 3px rgba(5, 150, 105, 0.20);
+
+  /* ── Status ───────────────────────────────── */
+  --ox-ok: #4D7C0F;               /* lime-700   — NOT emerald; see header note */
+  --ox-ok-bg: #F7FEE7;
+  --ox-ok-border: #D9F99D;
+  --ox-warn: #B45309;             /* amber-700 */
+  --ox-warn-bg: #FFFBEB;
+  --ox-warn-border: #FDE68A;
+  --ox-bad: #BE123C;              /* rose-700 */
+  --ox-bad-bg: #FFF1F2;
+  --ox-bad-border: #FECDD3;
+  --ox-info: #4338CA;             /* indigo-700 */
+  --ox-info-bg: #EEF2FF;
+  --ox-info-border: #C7D2FE;
+
+  /* ── Disabled state ───────────────────────── */
+  --ox-disabled-bg: #E7E5E4;
+  --ox-disabled-fg: #A8A29E;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   Polaris overrides — give the platform components the same pill
+   geometry and flat fills as the ox-* primitives, so a Polaris Button
+   next to an ox-tier-cta doesn't look like it came from a different app.
+   Note every border-radius here is the pill, not a rounded rectangle.
+   ══════════════════════════════════════════════════════════════════════ */
+
+.Polaris-Button--variantPrimary {
+  background: var(--ox-accent) !important;
+  border-color: var(--ox-accent) !important;
+  box-shadow: none !important;
+  border-radius: var(--ox-r-pill) !important;
+}
+.Polaris-Button--variantPrimary:hover:not(:disabled) {
+  background: var(--ox-accent-hover) !important;
+  border-color: var(--ox-accent-hover) !important;
+  box-shadow: none !important;
+}
+.Polaris-Button--variantPrimary:active:not(:disabled) {
+  background: var(--ox-accent-active) !important;
+  border-color: var(--ox-accent-active) !important;
+}
+.Polaris-Button--variantPrimary:focus-visible {
+  box-shadow: var(--ox-ring) !important;
+}
+/* A disabled button must LOOK disabled. The rule above sets the accent fill on
+   every primary button, which would otherwise override Polaris's own disabled
+   styling — leaving a button that cannot be clicked looking exactly like one
+   that can, so clicking it appears to do nothing. */
+.Polaris-Button--variantPrimary:disabled,
+.Polaris-Button--variantPrimary[aria-disabled="true"] {
+  background: var(--ox-disabled-bg) !important;
+  border-color: var(--ox-disabled-bg) !important;
+  color: var(--ox-disabled-fg) !important;
+  box-shadow: none !important;
+  cursor: not-allowed;
+}
+.Polaris-Button--variantPrimary:disabled .Polaris-Text--root,
+.Polaris-Button--variantPrimary[aria-disabled="true"] .Polaris-Text--root {
+  color: inherit !important;
+}
+
+/* Secondary/tertiary buttons pick up the pill so the whole button set agrees,
+   and lose their default shadow so they sit flat like everything else. */
+.Polaris-Button {
+  border-radius: var(--ox-r-pill) !important;
+  box-shadow: none !important;
+}
+
+.Polaris-Link { color: var(--ox-accent) !important; }
+.Polaris-Link:hover { color: var(--ox-accent-hover) !important; }
+
+.Polaris-TextField__Input:focus {
+  border-color: var(--ox-accent) !important;
+  box-shadow: var(--ox-ring) !important;
+}
+
+.Polaris-Checkbox__Input:checked + .Polaris-Checkbox__Backdrop {
+  background: var(--ox-accent) !important;
+  border-color: var(--ox-accent) !important;
+}
+
+/* Polaris cards lose their elevation too — otherwise any route that still uses
+   a <Card> reintroduces the shadow language this system removed. */
+.Polaris-Card,
+.Polaris-Box {
+  box-shadow: none !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   Command bar — the page header, as a TINTED WASH band.
+
+   This is the single biggest departure from the dark ink header the app
+   was rebuilt from. The header is the one element present on every page,
+   so its treatment is what makes a page recognisable as this app at a
+   glance — here that recognition comes from a wide, softly rounded
+   emerald wash rather than from reversing type out of ink. Nothing in it
+   is reversed, so the normal light-surface ink variables apply
+   throughout: do not introduce a reversed colour set here.
+   ══════════════════════════════════════════════════════════════════════ */
+
+.ox-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  background: var(--ox-accent-tint);
+  border: 1px solid var(--ox-accent-border);
+  border-radius: var(--ox-r-lg);
+  padding: 24px 26px;
+  margin-bottom: 20px;
+}
+.ox-bar-main { min-width: 0; }
+/* The app name as an OUTLINED pill — emerald rule and emerald text on the
+   tint, with no fill. The previous build filled this chip solid because it sat
+   on ink and a tint would have vanished; on a tinted wash the outline is the
+   legible choice and keeps the page title the heaviest thing on the row. */
+.ox-bar-eyebrow {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ox-deep);
+  background: transparent;
+  border: 1px solid var(--ox-accent);
+  border-radius: var(--ox-r-pill);
+  padding: 4px 12px;
+  margin: 0 0 12px 0;
+}
+.ox-bar-title {
+  font-size: 26px;
+  line-height: 1.14;
+  font-weight: 700;
+  letter-spacing: -0.028em;
+  color: var(--ox-ink);
+  margin: 0;
+}
+.ox-bar-sub {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ox-body);
+  margin: 8px 0 0 0;
+  max-width: 68ch;
+}
+.ox-bar-aside { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+/* Polaris secondary/tertiary buttons on the tint: their default white fill
+   reads as a hole punched in the wash, so they get a translucent white that
+   lets the emerald through. */
+.ox-bar .Polaris-Button--variantSecondary,
+.ox-bar .Polaris-Button--variantTertiary {
+  background: rgba(255, 255, 255, 0.72) !important;
+  border-color: var(--ox-accent-border) !important;
+}
+.ox-bar .Polaris-Button--variantSecondary:hover:not(:disabled),
+.ox-bar .Polaris-Button--variantTertiary:hover:not(:disabled) {
+  background: #fff !important;
+  border-color: var(--ox-accent) !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   KPI strip — soft stone tiles in a grid. The previous design was a row
+   of white cards each carrying a shadow and a 4px accent spine on its
+   leading edge; this is the same data as rounded stone washes, grouped
+   by their shared fill rather than by a repeating accent rule, with a
+   small emerald bullet marking each label.
+   ══════════════════════════════════════════════════════════════════════ */
+
+.ox-kpi {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.ox-kpi-cell {
+  position: relative;
+  min-width: 0;
+  background: var(--ox-wash-2);
+  border: var(--ox-hair);
+  border-radius: var(--ox-r-lg);
+  padding: 17px 19px 18px;
+  overflow: hidden;
+}
+/* The bullet is a flex row with the label, so a label that wraps stays aligned
+   to the text rather than to the dot. */
+.ox-kpi-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--ox-muted);
+  margin: 0 0 9px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ox-kpi-label::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ox-accent);
+  flex-shrink: 0;
+}
+/* Figures are the reason this component exists, so they get a real display
+   size rather than a nudged-up body size. */
+.ox-kpi-value {
+  font-size: 28px;
+  line-height: 1.1;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  font-variant-numeric: tabular-nums;
+  color: var(--ox-ink);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ox-kpi-value--ok { color: var(--ox-ok); }
+.ox-kpi-value--bad { color: var(--ox-bad); }
+.ox-kpi-note {
+  font-size: 11px;
+  color: var(--ox-muted);
+  margin: 5px 0 0 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* A word-valued KPI ("Growth", "On") would read as a broken headline at the
+   figure size, so it gets the tag treatment and keeps the row on one baseline. */
+.ox-kpi-tagline { min-height: 26px; display: flex; align-items: center; }
+
+/* ══════════════════════════════════════════════════════════════════════
+   Segmented control — a pill track whose active segment is an OUTLINED
+   white pill, not a solid accent fill. On the stone track a white pill
+   with an emerald rule and emerald text reads as "lifted" without a
+   shadow, which is the whole trick this system runs on.
+   ══════════════════════════════════════════════════════════════════════ */
+
+.ox-seg {
+  display: inline-flex;
+  gap: 4px;
+  border: var(--ox-hair);
+  border-radius: var(--ox-r-pill);
+  background: var(--ox-wash-2);
+  padding: 4px;
+}
+.ox-seg-btn {
+  appearance: none;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--ox-body);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 550;
+  line-height: 1;
+  padding: 7px 14px;
+  border-radius: var(--ox-r-pill);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.ox-seg-btn:hover:not(:disabled):not([aria-pressed="true"]) {
+  background: rgba(255, 255, 255, 0.75);
+  color: var(--ox-ink);
+}
+.ox-seg-btn[aria-pressed="true"] {
+  background: var(--ox-surface);
+  border-color: var(--ox-accent);
+  color: var(--ox-deep);
+  font-weight: 680;
+}
+.ox-seg-btn:focus-visible { outline: none; box-shadow: var(--ox-ring); }
+.ox-seg-btn:disabled { color: var(--ox-disabled-fg); cursor: not-allowed; }
+.ox-seg-count {
+  font-variant-numeric: tabular-nums;
+  opacity: 0.68;
+  margin-left: 6px;
+}
+/* On the active segment the count is emerald-on-white, which needs less
+   fading than muted-on-stone to stay readable. */
+.ox-seg-btn[aria-pressed="true"] .ox-seg-count { opacity: 0.8; }
+
+/* A labelled control group: micro-label above the control, not beside it. */
+.ox-field { display: inline-flex; flex-direction: column; gap: 7px; }
+.ox-field-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ox-muted);
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   Panel — a white card on the page wash, grouped by radius and hairline
+   alone. Replaces Polaris <Card> where the card's own padding would
+   fight the dense table inside it. Unlike the previous build the header
+   is NOT accent-tinted and carries no accent bar before its title: the
+   panel is already distinguishable because it is white on a stone wash,
+   and tinting the header as well put three different greens on one
+   screen.
+   ══════════════════════════════════════════════════════════════════════ */
+
+.ox-panel {
+  background: var(--ox-surface);
+  border: var(--ox-hair);
+  border-radius: var(--ox-r-lg);
+  overflow: hidden;
+  margin-bottom: 18px;
+}
+.ox-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 17px 20px;
+  background: var(--ox-surface);
+  border-bottom: var(--ox-hair);
+}
+/* Sentence-case, ink, no glyph. The emphasis is carried by weight and size. */
+.ox-panel-title {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.014em;
+  color: var(--ox-ink);
+  margin: 0;
+}
+.ox-panel-note { font-size: 12px; color: var(--ox-muted); margin: 5px 0 0 0; }
+.ox-panel-body { padding: 20px; }
+.ox-panel-foot {
+  padding: 13px 20px;
+  background: var(--ox-wash);
+  border-top: var(--ox-hair);
+  font-size: 12px;
+  color: var(--ox-muted);
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   Dense table — products, alt-text rows, pages and format breakdowns are
+   all rows in a grid, not stacked cards. The head is a STONE wash with
+   muted labels (the previous build reversed it out of ink), body rows
+   are plain white separated by hairlines with NO zebra striping, and the
+   selected row is marked by an emerald tint plus an inset accent rule.
+
+   Dropping the stripe is deliberate: banding plus a tint plus a hover
+   state gave the eye three competing background colours to decode on a
+   page whose primary action is "optimize the rows you picked". With a
+   flat white body, "this row is tinted" means exactly one thing.
+
+   Specificity matters in this block. `:hover` is (0,2,0), so the state
+   modifiers below are written doubled-up —
+   `.ox-tbody-row.ox-tbody-row--selected` — to reach (0,2,0) and win on
+   source order. Written singly they lose to :hover and a hovered
+   selected row silently renders as an unselected one.
+   ══════════════════════════════════════════════════════════════════════ */
+
+.ox-table { --ox-cols: 1fr; }
+/* Roomy rows. The table is the surface merchants spend the most time scanning,
+   so the extra height buys legibility that matters more here than fitting one
+   more row on screen. */
+.ox-tr {
+  display: grid;
+  grid-template-columns: var(--ox-cols);
+  align-items: center;
+  gap: 12px;
+  padding: 15px 20px;
+  border-bottom: var(--ox-hair);
+  min-width: 0;
+}
+.ox-tr:last-child { border-bottom: 0; }
+/* Stone header row. It reads as a continuation of the KPI tiles above rather
+   than as an inverted band, which is what keeps the page feeling like one
+   continuous surface instead of a stack of separate widgets. */
+.ox-thead {
+  background: var(--ox-wash-2);
+  border-bottom: var(--ox-hair);
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+.ox-th {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ox-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ox-tbody-row {
+  background: var(--ox-surface);
+  transition: background 0.15s ease;
+}
+/* Hover is the stone wash, NOT the accent tint — the accent tint is what marks
+   a SELECTED row, and using it for both made a hovered row indistinguishable
+   from a selected one. */
+.ox-tbody-row:hover { background: var(--ox-wash); }
+/* Doubled class names for specificity — see the note at the top of this block.
+   These must beat :hover. */
+.ox-tbody-row.ox-tbody-row--selected {
+  background: var(--ox-accent-tint);
+  box-shadow: inset 3px 0 0 var(--ox-accent);
+}
+.ox-tbody-row.ox-tbody-row--selected:hover {
+  background: var(--ox-accent-tint-2);
+}
+.ox-tbody-row.ox-tbody-row--active { box-shadow: inset 3px 0 0 var(--ox-accent); }
+/* A row that is both selected and active must not stack two different inset
+   rules — the selected rule above already paints the marker. */
+.ox-tbody-row.ox-tbody-row--selected.ox-tbody-row--active {
+  box-shadow: inset 3px 0 0 var(--ox-accent-active);
+}
+
+.ox-td { min-width: 0; font-size: 13px; color: var(--ox-body); }
+.ox-td--num { font-variant-numeric: tabular-nums; text-align: right; }
+.ox-td--right { display: flex; justify-content: flex-end; }
+.ox-td-strong {
+  font-size: 13px;
+  font-weight: 620;
+  color: var(--ox-ink);
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ox-td-meta {
+  font-size: 11px;
+  color: var(--ox-muted);
+  margin: 2px 0 0 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ox-td-ok { color: var(--ox-ok); font-weight: 620; }
+
+/* Column templates. Declared here rather than inline so the header row and the
+   body rows can never disagree about how many columns there are. */
+.ox-table--products {
+  --ox-cols: 26px 36px minmax(0, 1fr) 62px 86px 104px 132px 120px;
+}
+.ox-table--alt {
+  --ox-cols: 26px 44px minmax(0, 1.1fr) minmax(0, 1.4fr) 64px 104px;
+}
+.ox-table--pages {
+  --ox-cols: minmax(0, 1fr) 60px 84px 84px 90px 92px;
+}
+.ox-table--formats {
+  --ox-cols: 72px 72px minmax(120px, 1fr) 92px 60px;
+}
+.ox-table--vitals {
+  --ox-cols: minmax(0, 1fr) 110px 150px;
+}
+
+/* Narrow viewports: drop the columns that are nice-to-have before the ones that
+   are load-bearing. `display:none` on a grid child removes it from the flow, so
+   the template is shortened to match in each step. */
+@media (max-width: 1040px) {
+  .ox-table--products { --ox-cols: 26px 36px minmax(0, 1fr) 86px 132px 120px; }
+  .ox-table--products .ox-col-images,
+  .ox-table--products .ox-col-saved { display: none; }
+  .ox-table--pages { --ox-cols: minmax(0, 1fr) 60px 90px 92px; }
+  .ox-table--pages .ox-col-before,
+  .ox-table--pages .ox-col-after { display: none; }
+}
+@media (max-width: 780px) {
+  .ox-table--products { --ox-cols: 26px minmax(0, 1fr) 132px; }
+  .ox-table--products .ox-col-thumb,
+  .ox-table--products .ox-col-size,
+  .ox-table--products .ox-col-action { display: none; }
+  .ox-table--alt { --ox-cols: 26px minmax(0, 1fr) minmax(0, 1.2fr) 104px; }
+  .ox-table--alt .ox-col-thumb,
+  .ox-table--alt .ox-col-score { display: none; }
+}
+
+/* Inline editable cell. A Polaris TextField carries a label slot, help-text
+   slot and its own vertical rhythm, all of which fight a table row — this is
+   the same control stripped to the field itself so the caption can be edited
+   in place rather than in a panel below the list. */
+.ox-input {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--ox-ink);
+  background: var(--ox-wash);
+  border: var(--ox-hair);
+  border-radius: var(--ox-r-sm);
+  padding: 8px 10px;
+  resize: vertical;
+  min-height: 42px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+.ox-input::placeholder { color: var(--ox-faint); }
+.ox-input:focus {
+  outline: none;
+  background: var(--ox-surface);
+  border-color: var(--ox-accent);
+  box-shadow: var(--ox-ring);
+}
+.ox-input:disabled {
+  background: var(--ox-wash-2);
+  color: var(--ox-muted);
+  cursor: not-allowed;
+}
+
+/* Native select, restyled. A segmented control is the right shape for four
+   fixed choices; it is the wrong shape for "pick one of 500 product pages", so
+   that one stays a select — just not a Polaris-chromed one. Pill, to match the
+   rest of the control set. */
+.ox-select {
+  appearance: none;
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.3;
+  color: var(--ox-ink);
+  background-color: var(--ox-surface);
+  border: var(--ox-hair);
+  border-radius: var(--ox-r-pill);
+  padding: 10px 34px 10px 16px;
+  min-width: 220px;
+  max-width: 100%;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  /* Caret drawn as a background gradient pair so no SVG asset or icon font is
+     needed — the strict-CSP public pages can't fetch one anyway. */
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--ox-muted) 50%),
+    linear-gradient(135deg, var(--ox-muted) 50%, transparent 50%);
+  background-position: calc(100% - 19px) 53%, calc(100% - 14px) 53%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+.ox-select:hover:not(:disabled) { border-color: var(--ox-accent-border); }
+.ox-select:focus {
+  outline: none;
+  border-color: var(--ox-accent);
+  box-shadow: var(--ox-ring);
+}
+.ox-select:disabled {
+  background-color: var(--ox-wash-2);
+  color: var(--ox-muted);
+  cursor: not-allowed;
+}
+
+/* Row thumbnail — softly rounded, hairline, no Polaris Thumbnail chrome. */
+.ox-thumb {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--ox-r-sm);
+  border: var(--ox-hair);
+  object-fit: cover;
+  display: block;
+  background: var(--ox-wash-2);
+}
+.ox-thumb--lg { width: 44px; height: 44px; border-radius: var(--ox-r); }
+
+/* ══════════════════════════════════════════════════════════════════════
+   Meter — a fully rounded inline bar. Used in table rows where a Polaris
+   ProgressBar is too tall and carries its own margins. Thicker than the
+   previous build's 6px: with no shadow on the track, a thin bar on a
+   stone fill is hard to read at a glance.
+   ══════════════════════════════════════════════════════════════════════ */
+
+.ox-meter { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.ox-meter-track {
+  flex: 1 1 auto;
+  height: 8px;
+  min-width: 36px;
+  border-radius: var(--ox-r-pill);
+  background: var(--ox-wash-2);
+  border: 1px solid var(--ox-border);
+  box-sizing: border-box;
+  overflow: hidden;
+}
+.ox-meter-fill {
+  display: block;
+  height: 100%;
+  border-radius: var(--ox-r-pill);
+  background: var(--ox-accent);
+  transition: width 0.3s ease;
+}
+.ox-meter-fill--ok { background: var(--ox-ok); }
+.ox-meter-fill--warn { background: var(--ox-warn); }
+.ox-meter-fill--bad { background: var(--ox-bad); }
+.ox-meter-value {
+  font-size: 11px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  color: var(--ox-body);
+  width: 34px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* A wider, labelled meter for the quota rail in the command bar area. */
+.ox-quota { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.ox-quota .ox-meter-track { height: 10px; min-width: 180px; }
+
+/* ══════════════════════════════════════════════════════════════════════
+   Tags & dots — fully rounded pills, BORDERLESS. The previous build gave
+   every tag a 1px tinted rule; dropping it leaves the tint itself as the
+   only signal, which is softer and stops a row of four tags from reading
+   as four outlined buttons. Used alongside (not instead of) Polaris
+   Badge: Badge stays for platform-standard statuses.
+   ══════════════════════════════════════════════════════════════════════ */
+
+.ox-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1;
+  padding: 6px 12px;
+  border-radius: var(--ox-r-pill);
+  border: 0;
+  background: var(--ox-wash-2);
+  color: var(--ox-body);
+  white-space: nowrap;
+}
+.ox-tag--brand { background: var(--ox-accent-tint-2); color: var(--ox-deep); }
+.ox-tag--ok { background: var(--ox-ok-bg); color: var(--ox-ok); }
+.ox-tag--warn { background: var(--ox-warn-bg); color: var(--ox-warn); }
+.ox-tag--bad { background: var(--ox-bad-bg); color: var(--ox-bad); }
+.ox-tag--info { background: var(--ox-info-bg); color: var(--ox-info); }
+
+.ox-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--ox-border-strong);
+  display: inline-block;
+}
+/* No ring here. On a borderless tinted tag the dot already sits on its own
+   tone, and the previous build's 2px halo was compensating for the tag border
+   that no longer exists. */
+.ox-dot--ok { background: var(--ox-ok); }
+.ox-dot--warn { background: var(--ox-warn); }
+.ox-dot--bad { background: var(--ox-bad); }
+.ox-dot--info { background: var(--ox-info); }
+.ox-dot--brand { background: var(--ox-accent); }
+
+/* ══════════════════════════════════════════════════════════════════════
+   Image chips — per-image run state. Replaces a row of Polaris
+   Thumbnails in Boxes; these are small rounded squares in a tight wrap
+   grid so a 25-image product is a glanceable block rather than a scroll.
+   ══════════════════════════════════════════════════════════════════════ */
+
+.ox-chips { display: flex; flex-wrap: wrap; gap: 7px; }
+.ox-chip {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--ox-r-sm);
+  border: var(--ox-hair);
+  background: var(--ox-wash-2);
+  overflow: hidden;
+}
+.ox-chip img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ox-chip--done { border-color: var(--ox-ok); }
+.ox-chip--failed { border-color: var(--ox-bad); }
+.ox-chip--working { border-color: var(--ox-accent); box-shadow: var(--ox-ring); }
+/* A bottom bar rather than a full overlay: the merchant can still see which
+   image it is while the state is unambiguous at 32px. */
+.ox-chip::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 4px;
+  background: transparent;
+}
+.ox-chip--done::after { background: var(--ox-ok); }
+.ox-chip--failed::after { background: var(--ox-bad); }
+.ox-chip--working::after {
+  background: var(--ox-accent);
+  animation: ox-pulse 1s ease-in-out infinite;
+}
+.ox-chip--skipped::after { background: var(--ox-border-strong); }
+@keyframes ox-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+/* ══════════════════════════════════════════════════════════════════════
+   Run rail — the live optimization strip. An emerald-tinted card that
+   matches the command bar, so the thing currently happening and the page
+   it is happening on share a surface.
+   ══════════════════════════════════════════════════════════════════════ */
+
+.ox-run {
+  background: var(--ox-accent-tint);
+  border: 1px solid var(--ox-accent-border);
+  border-radius: var(--ox-r-lg);
+  margin-bottom: 18px;
+  overflow: hidden;
+}
+.ox-run-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 15px 20px;
+  background: transparent;
+  border-bottom: 1px solid var(--ox-accent-border);
+}
+.ox-run-title {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 13px;
+  font-weight: 680;
+  color: var(--ox-deep);
+  margin: 0;
+}
+/* A pulsing dot marks the run as live without needing a spinner component. */
+.ox-run-title::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ox-accent);
+  flex-shrink: 0;
+  animation: ox-pulse 1.1s ease-in-out infinite;
+}
+.ox-run-pct {
+  font-size: 17px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  color: var(--ox-deep);
+}
+/* The body is white inside the tinted frame, so the log text sits on a neutral
+   surface while the card still reads as emerald. */
+.ox-run-body {
+  padding: 16px 20px;
+  background: var(--ox-surface);
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+.ox-run-line { font-size: 12px; color: var(--ox-muted); margin: 0; }
+.ox-run-line strong { color: var(--ox-ink); font-weight: 650; }
+.ox-run-log { display: flex; flex-direction: column; gap: 5px; }
+.ox-run-log-item {
+  font-size: 11px;
+  color: var(--ox-muted);
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ox-run-log-item::before { content: "✓ "; color: var(--ox-ok); font-weight: 700; }
+
+/* ══════════════════════════════════════════════════════════════════════
+   Sticky bulk-action bar — replaces the inline "Optimize Selected"
+   button that scrolled away with the toolbar. A floating WHITE pill with
+   an emerald hairline; the previous build floated a dark ink slab here.
+   Because it has no shadow to separate it from the content it overlaps,
+   the fill is fully opaque white and the border is the accent rather
+   than the hairline grey — that contrast is what makes it read as
+   floating above the table rather than as another row in it.
+   ══════════════════════════════════════════════════════════════════════ */
+
+.ox-actionbar {
+  position: sticky;
+  bottom: 14px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  background: var(--ox-surface);
+  border: 1.5px solid var(--ox-accent);
+  border-radius: var(--ox-r-pill);
+  padding: 13px 14px 13px 22px;
+  margin-top: 18px;
+}
+.ox-actionbar-text {
+  font-size: 13px;
+  font-weight: 650;
+  color: var(--ox-ink);
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+.ox-actionbar-note { font-size: 12px; color: var(--ox-muted); margin: 3px 0 0 0; }
+.ox-actionbar-actions { display: flex; align-items: center; gap: 9px; }
+
+/* The "clear selection" control. On the light bar this is a plain stone pill —
+   the previous build needed a translucent-white-on-ink treatment here. The
+   name is kept because five routes import it. */
+.ox-btn-ghost {
+  appearance: none;
+  background: var(--ox-wash-2);
+  border: var(--ox-hair);
+  border-radius: var(--ox-r-pill);
+  color: var(--ox-body);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 550;
+  padding: 8px 15px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.ox-btn-ghost:hover {
+  background: var(--ox-surface);
+  border-color: var(--ox-border-strong);
+  color: var(--ox-ink);
+}
+.ox-btn-ghost:focus-visible { outline: none; box-shadow: var(--ox-ring); }
+
+/* ══════════════════════════════════════════════════════════════════════
+   Expanded row detail — inline, inside the table, instead of a modal or
+   a separate card per product. A stone tray, flush with the row above.
+   ══════════════════════════════════════════════════════════════════════ */
+
+.ox-expand {
+  background: var(--ox-wash-2);
+  border-bottom: var(--ox-hair);
+  padding: 16px 20px 18px 62px;
+}
+.ox-expand-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
+  gap: 13px 18px;
+  margin-bottom: 14px;
+}
+.ox-expand-k {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ox-muted);
+  margin: 0 0 5px 0;
+}
+.ox-expand-v {
+  font-size: 13px;
+  font-weight: 620;
+  font-variant-numeric: tabular-nums;
+  color: var(--ox-ink);
+  margin: 0;
+}
+.ox-disclose {
+  appearance: none;
+  background: transparent;
+  border: 1px solid var(--ox-accent-border);
+  border-radius: var(--ox-r-pill);
+  padding: 5px 12px;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 650;
+  color: var(--ox-deep);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.ox-disclose:hover { background: var(--ox-accent-tint); border-color: var(--ox-accent); }
+.ox-disclose:focus-visible { outline: none; box-shadow: var(--ox-ring); }
+.ox-disclose-caret { font-size: 9px; line-height: 1; }
+
+@media (max-width: 780px) {
+  .ox-expand { padding-left: 20px; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   Launchpad list — the home page tool index. Rows with a CIRCULAR
+   emerald-tinted monogram, replacing the solid accent square the
+   previous build used. The circle is the shape nothing else in the
+   system uses at that size, which is what makes the home page read as
+   an index rather than as another table.
+   ══════════════════════════════════════════════════════════════════════ */
+
+.ox-launch { display: flex; flex-direction: column; }
+.ox-launch-row {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  padding: 17px 20px;
+  border-bottom: var(--ox-hair);
+  background: var(--ox-surface);
+  transition: background 0.15s ease;
+}
+.ox-launch-row:last-child { border-bottom: 0; }
+.ox-launch-row:hover { background: var(--ox-hover); }
+.ox-launch-glyph {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid var(--ox-accent-border);
+  background: var(--ox-accent-tint-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--ox-deep);
+}
+/* A locked tool is stone-on-stone with no emerald at all — the difference has
+   to be legible without reading the badge beside it. */
+.ox-launch-glyph--locked {
+  color: var(--ox-faint);
+  background: var(--ox-wash-2);
+  border-color: var(--ox-border);
+}
+.ox-launch-name {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-wrap: wrap;
+  margin: 0 0 4px 0;
+  font-size: 13px;
+  font-weight: 680;
+  color: var(--ox-ink);
+}
+.ox-launch-desc { font-size: 12px; color: var(--ox-muted); margin: 0; }
+
+@media (max-width: 700px) {
+  .ox-launch-row { grid-template-columns: 38px minmax(0, 1fr); }
+  .ox-launch-row > :last-child { grid-column: 1 / -1; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   Insight list — replaces a stack of full-width Polaris Banners, which
+   read as four errors rather than four notes.
+   ══════════════════════════════════════════════════════════════════════ */
+
+.ox-notes { display: flex; flex-direction: column; }
+.ox-note {
+  display: grid;
+  grid-template-columns: 7px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 14px;
+  padding: 15px 20px;
+  border-bottom: var(--ox-hair);
+}
+.ox-note:last-child { border-bottom: 0; }
+.ox-note-dot { margin-top: 6px; }
+.ox-note-title { font-size: 13px; font-weight: 680; color: var(--ox-ink); margin: 0 0 4px 0; }
+.ox-note-body { font-size: 12px; line-height: 1.55; color: var(--ox-body); margin: 0; }
+
+@media (max-width: 700px) {
+  .ox-note { grid-template-columns: 7px minmax(0, 1fr); }
+  .ox-note > :last-child { grid-column: 2; margin-top: 8px; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   Vitals grid — Core Web Vitals cells. Stone tiles matching the KPI
+   strip, so the two figure components on the page speed report agree.
+   ══════════════════════════════════════════════════════════════════════ */
+
+.ox-vitals {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+.ox-vital {
+  background: var(--ox-wash-2);
+  border: var(--ox-hair);
+  border-radius: var(--ox-r-lg);
+  padding: 16px 18px;
+}
+.ox-vital-k {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ox-muted);
+  margin: 0 0 8px 0;
+}
+.ox-vital-v {
+  font-size: 21px;
+  font-weight: 680;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.025em;
+  color: var(--ox-ink);
+  margin: 0;
+}
+.ox-vital-r { font-size: 11px; margin: 5px 0 0 0; color: var(--ox-muted); }
+
+/* Score ring replacement: a big figure with a rating tag beside it. */
+.ox-score { display: flex; align-items: baseline; gap: 11px; }
+.ox-score-n {
+  font-size: 38px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.035em;
+  font-variant-numeric: tabular-nums;
+  color: var(--ox-ink);
+}
+.ox-score-d { font-size: 14px; color: var(--ox-muted); }
+
+/* ══════════════════════════════════════════════════════════════════════
+   Empty / loading states
+   ══════════════════════════════════════════════════════════════════════ */
+
+.ox-empty { padding: 52px 24px; text-align: center; }
+/* An emerald ring, drawn as a bordered circle with a tinted centre. With no
+   shadowed card to frame it, a bare centred paragraph had nothing anchoring it
+   to the middle of the panel — this gives the block a vertical starting point.
+   It is emitted by EmptyState as an aria-hidden <span>; keep it empty. */
+.ox-empty-glyph {
+  display: block;
+  width: 40px;
+  height: 40px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  background: var(--ox-accent-tint-2);
+  border: 1px solid var(--ox-accent-border);
+}
+.ox-empty-title { font-size: 14px; font-weight: 680; color: var(--ox-ink); margin: 0 0 7px 0; }
+.ox-empty-body { font-size: 13px; color: var(--ox-muted); margin: 0 auto; max-width: 46ch; }
+
+/* Skeleton rows, so the table's shape is visible while /api/catalog answers
+   instead of a lone centred spinner that gives no sense of what's coming. */
+.ox-skel {
+  height: 11px;
+  border-radius: var(--ox-r-pill);
+  background: linear-gradient(90deg, var(--ox-wash-2) 0%, #EBE9E7 50%, var(--ox-wash-2) 100%);
+  background-size: 200% 100%;
+  animation: ox-shimmer 1.3s linear infinite;
+}
+@keyframes ox-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   Public pages — the pricing matrix and the prose pages
+   ══════════════════════════════════════════════════════════════════════ */
+
+.ox-page {
+  min-height: 100vh;
+  background: var(--ox-wash);
+  padding: 60px 24px;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: var(--ox-body);
+}
+.ox-page-inner { max-width: 1000px; margin: 0 auto; }
+/* Outlined emerald pill, matching the brand chip in the admin command bar so
+   the public pages and the embedded app read as one product. */
+.ox-page-eyebrow {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ox-deep);
+  background: var(--ox-accent-tint);
+  border: 1px solid var(--ox-accent);
+  border-radius: var(--ox-r-pill);
+  padding: 5px 13px;
+  margin: 0 0 18px 0;
+}
+.ox-page-h1 {
+  font-size: 35px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.14;
+  color: var(--ox-ink);
+  margin: 0 0 10px 0;
+}
+.ox-page-lead { font-size: 15px; line-height: 1.6; color: var(--ox-muted); margin: 0 0 32px 0; max-width: 62ch; }
+
+.ox-matrix-wrap {
+  background: var(--ox-surface);
+  border: var(--ox-hair);
+  border-radius: var(--ox-r-lg);
+  overflow: hidden;
+  overflow-x: auto;
+}
+.ox-matrix { width: 100%; border-collapse: collapse; min-width: 680px; }
+.ox-matrix th, .ox-matrix td {
+  padding: 14px 16px;
+  text-align: left;
+  border-bottom: var(--ox-hair);
+  font-size: 13px;
+  vertical-align: middle;
+}
+.ox-matrix tr:last-child th, .ox-matrix tr:last-child td { border-bottom: 0; }
+.ox-matrix thead th { background: var(--ox-surface); vertical-align: top; border-bottom: 1px solid var(--ox-border-strong); }
+.ox-matrix tbody th {
+  font-weight: 550;
+  color: var(--ox-body);
+  width: 34%;
+}
+.ox-matrix td { text-align: center; font-variant-numeric: tabular-nums; }
+/* The recommended column is marked by a tinted stripe, not by being physically
+   lifted out of the table. The previous build capped it with an inset accent
+   rule as well; the tint alone is enough once the header cell is white. */
+.ox-matrix .ox-col-pop { background: var(--ox-accent-tint); }
+/* "Most popular" badge above the tier name in the matrix header. */
+.ox-tier-flag { margin: 0 0 8px 0; }
+.ox-tier-name { font-size: 15px; font-weight: 700; color: var(--ox-ink); margin: 0 0 3px 0; }
+.ox-tier-tag { font-size: 11px; color: var(--ox-muted); margin: 0 0 13px 0; }
+.ox-tier-cta {
+  display: block;
+  text-align: center;
+  text-decoration: none;
+  box-sizing: border-box;
+  font-size: 13px;
+  font-weight: 650;
+  padding: 10px 16px;
+  border-radius: var(--ox-r-pill);
+  border: 1px solid var(--ox-border-strong);
+  background: var(--ox-surface);
+  color: var(--ox-body);
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.ox-tier-cta:hover {
+  background: var(--ox-accent-tint);
+  border-color: var(--ox-accent);
+  color: var(--ox-deep);
+}
+.ox-tier-cta--primary {
+  background: var(--ox-accent);
+  border-color: var(--ox-accent);
+  color: #fff;
+}
+.ox-tier-cta--primary:hover {
+  background: var(--ox-accent-hover);
+  border-color: var(--ox-accent-hover);
+  color: #fff;
+}
+.ox-yes { color: var(--ox-ok); font-weight: 700; }
+.ox-no { color: var(--ox-faint); }
+.ox-matrix-foot { font-size: 12px; color: var(--ox-muted); margin: 22px 0 0 0; }
+
+/* ── Prose — the public privacy page and the marketing landing page ── */
+
+/* The public prose card. The one piece of brand on an otherwise text-only page
+   is the emerald hairline frame plus the eyebrow pill above it — the previous
+   build used a 5px solid accent cap, which is the kind of heavy edge this
+   system replaced with tint and radius. */
+.ox-prose {
+  background: var(--ox-surface);
+  border: 1px solid var(--ox-accent-border);
+  border-radius: var(--ox-r-lg);
+  padding: 44px 46px;
+  max-width: 760px;
+  margin: 0 auto;
+}
+.ox-prose h1 {
+  font-size: 35px;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.12;
+  color: var(--ox-ink);
+  margin: 0 0 8px 0;
+}
+.ox-prose h2 {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  color: var(--ox-ink);
+  margin: 32px 0 10px 0;
+  padding-top: 18px;
+  border-top: var(--ox-hair);
+}
+.ox-prose p { font-size: 15px; line-height: 1.7; margin: 0 0 14px 0; }
+.ox-prose ul { margin: 0 0 14px 0; padding-left: 20px; }
+.ox-prose li { font-size: 15px; line-height: 1.7; margin-bottom: 9px; }
+.ox-prose a { color: var(--ox-accent); }
+.ox-prose code {
+  background: var(--ox-wash-2);
+  border: var(--ox-hair);
+  padding: 2px 7px;
+  border-radius: var(--ox-r-sm);
+  font-size: 13px;
+}
+.ox-prose-meta { font-size: 13px; color: var(--ox-muted); margin: 0 0 28px 0; }
+
+@media (max-width: 640px) {
+  .ox-prose { padding: 30px 22px; }
+  .ox-page { padding: 38px 16px; }
+  .ox-page-h1 { font-size: 28px; }
+}

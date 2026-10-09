@@ -1,0 +1,14 @@
+.cache
+build
+node_modules
+.react-router
+.shopify
+.git
+
+# Never let a local `docker build` bake real secrets into an image layer.
+# Coolify builds from a fresh git clone where .env does not exist, so this
+# matters only for builds run from a working copy — which is exactly where the
+# file does exist.
+.env
+.env.*
+!.env.example
